@@ -10,21 +10,36 @@ public class Player : MonoBehaviour
     public bool isTouchRight;
     public bool isTouchLeft;
 
+    public int life;
+    public int score;
     public float speed;
-    public float power;
+    public int maxPower;
+    public int power;
+    
+    public int maxBoom;
+    public int boom;
+
     public float maxShotDelay;
     public float curShotDelay;
 
 
     public GameObject bulletObjA;
     public GameObject bulletObjB;
+    public GameObject boomEffect;
 
 
+    public GameManager gameManager;
+    public ObjectManager objectManager;
+
+    public bool isHit;
+    public bool isBoomTime;
     Animator anim;
-
+    
     void Awake()
     {
         anim = GetComponent<Animator>();
+      
+
     }
 
 
@@ -33,7 +48,7 @@ public class Player : MonoBehaviour
         Move();
         Fire();
         Reload();
-
+        Boom();
     }
 
     void Move()
@@ -74,7 +89,9 @@ public class Player : MonoBehaviour
         {
             case 1: // Power One
 
-                GameObject bullet = Instantiate(bulletObjA, transform.position, transform.rotation);
+                GameObject bullet = objectManager.MakeObj("BulletPlayerA");
+                bullet.transform.position = transform.position;
+
                 Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
                 rigid.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
             
@@ -82,9 +99,13 @@ public class Player : MonoBehaviour
 
             case 2:
 
-                GameObject bulletR = Instantiate(bulletObjA, transform.position + Vector3.right * 0.1f, transform.rotation);
-                GameObject bulletL = Instantiate(bulletObjA, transform.position + Vector3.left * 0.1f, transform.rotation);
+                GameObject bulletR = objectManager.MakeObj("BulletPlayerA");
+                bulletR.transform.position = transform.position + Vector3.right * 0.1f;
+               
+                GameObject bulletL = objectManager.MakeObj("BulletPlayerA");
+                bulletL.transform.position = transform.position + Vector3.left * 0.1f;
 
+               
                 Rigidbody2D rigidR = bulletR.GetComponent<Rigidbody2D>();
                 Rigidbody2D rigidL = bulletL.GetComponent<Rigidbody2D>();
                 
@@ -94,10 +115,16 @@ public class Player : MonoBehaviour
 
             case 3:
 
-                GameObject bulletRR = Instantiate(bulletObjA, transform.position + Vector3.right * 0.35f, transform.rotation);
-                GameObject bulletCC = Instantiate(bulletObjB, transform.position, transform.rotation);
-                GameObject bulletLL = Instantiate(bulletObjA, transform.position + Vector3.left * 0.35f, transform.rotation);
+                GameObject bulletRR = objectManager.MakeObj("BulletPlayerA");
+                bulletRR.transform.position = transform.position + Vector3.right * 0.35f;
+               
+                GameObject bulletCC = objectManager.MakeObj("BulletPlayerB");
+                bulletCC.transform.position = transform.position;
+               
+                GameObject bulletLL = objectManager.MakeObj("BulletPlayerA");
+                bulletLL.transform.position = transform.position + Vector3.left * 0.35f;
 
+            
                 Rigidbody2D rigidRR = bulletRR.GetComponent<Rigidbody2D>();
                 Rigidbody2D rigidCC = bulletCC.GetComponent<Rigidbody2D>();
                 Rigidbody2D rigidLL = bulletLL.GetComponent<Rigidbody2D>();
@@ -118,8 +145,83 @@ public class Player : MonoBehaviour
     void Reload()
     {
         curShotDelay += Time.deltaTime;
-    }
+    } 
 
+    void Boom()
+    {
+        if (!Input.GetButton("Fire2"))
+            return;
+
+        if (isBoomTime)
+            return;
+
+        if (boom == 0)
+            return;
+        boom--;
+        isBoomTime = true;
+        gameManager.UpdateBoomIcon(boom);
+
+
+
+        // 1. Effect visible;
+        boomEffect.SetActive(true);
+        Invoke("OffBoomEffect", 4f);
+
+
+        // 2. Remove Enemy
+        GameObject[] enemiesL = objectManager.GetPool("EnemyL");
+        GameObject[] enemiesM = objectManager.GetPool("EnemyM");
+        GameObject[] enemiesS = objectManager.GetPool("EnemyS");
+
+        for (int index = 0; index < enemiesL.Length; index++)
+        {
+            if(enemiesL[index].activeSelf)
+            {
+                Enemy enemyLogic = enemiesL[index].GetComponent<Enemy>();
+                enemyLogic.OnHit(1000);
+            }
+        }
+
+        for (int index = 0; index < enemiesM.Length; index++)
+        {
+            if (enemiesM[index].activeSelf)
+            {
+                Enemy enemyLogic = enemiesM[index].GetComponent<Enemy>();
+                enemyLogic.OnHit(1000);
+            }
+        }
+
+        for (int index = 0; index < enemiesS.Length; index++)
+        {
+            if (enemiesS[index].activeSelf)
+            {
+                Enemy enemyLogic = enemiesS[index].GetComponent<Enemy>();
+                enemyLogic.OnHit(1000);
+            }
+        }
+
+        // 3. Remove Enemy Bullet
+        GameObject[] bulletsA = objectManager.GetPool("BulletEnemyA");
+        GameObject[] bulletsB = objectManager.GetPool("BulletEnemyB");
+
+        for (int index = 0; index < bulletsA.Length; index++)
+        {
+            if (bulletsA[index].activeSelf)
+            {
+                bulletsA[index].SetActive(false);
+            }
+        }
+
+        for (int index = 0; index < bulletsB.Length; index++)
+        {
+            if (bulletsB[index].activeSelf)
+            {
+                bulletsB[index].SetActive(false);
+
+            }
+        }
+
+    }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -144,6 +246,73 @@ public class Player : MonoBehaviour
                     break;
             }
         }
+
+        else if(collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "EnemyBullet")
+        {
+            if (isHit)
+                return;
+
+            isHit = true;
+            life--;
+            gameManager.UpdateLifeIcon(life);
+
+          
+
+            if (life == 0)
+            {
+                gameManager.GameOver();
+
+            }
+
+            else
+            {
+                gameManager.RespawnPlayer();
+            }
+
+            gameObject.SetActive(false);
+           // Destroy(collision.gameObject);
+          }
+
+        else if(collision.gameObject.tag == "Item")
+            {
+            Item item = collision.gameObject.GetComponent<Item>();
+            switch (item.type)
+            {
+                case "Coin":
+                    score += 1000;
+                    break;
+
+                case "Power":
+                    if (power == maxPower)
+                        score += 500;
+                    else
+                        power++;
+                    
+                    break;
+
+                case "Boom":
+                    if (boom == maxBoom)
+                        score += 500;
+                    else
+                    {
+                        boom++;
+                        gameManager.UpdateBoomIcon(boom);
+                    }
+                      
+                    
+                    break;
+            }
+            collision.gameObject.SetActive(false);
+
+            //Destroy(collision.gameObject);
+
+        }
+    }
+
+    void OffBoomEffect()
+    {
+         boomEffect.SetActive(false);
+        isBoomTime = false;
     }
 
     void OnTriggerExit2D(Collider2D collision)
@@ -170,7 +339,6 @@ public class Player : MonoBehaviour
             }
         }
     }
-
 
 
 }
