@@ -137,7 +137,7 @@ MonoBehaviour:
   enemyName: S
   enemyScore: 50
   speed: 3
-  health: 3
+  health: 1
   sprites:
   - {fileID: -3876759189950653258, guid: a44de4eb4250f794e9c465fed974ceb4, type: 3}
   - {fileID: 5398807837072792716, guid: a44de4eb4250f794e9c465fed974ceb4, type: 3}
@@ -153,4 +153,9 @@ MonoBehaviour:
     type: 3}
   itemBoom: {fileID: 6395888296345428632, guid: 56c373f371228194291810a61d424784,
     type: 3}
+  gameManager: {fileID: 0}
   player: {fileID: 0}
+  objectManager: {fileID: 0}
+  patternIndex: 0
+  curPatternCount: 0
+  maxPatternCount: 

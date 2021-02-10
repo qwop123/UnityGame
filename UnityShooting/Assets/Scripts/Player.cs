@@ -33,15 +33,60 @@ public class Player : MonoBehaviour
 
     public bool isHit;
     public bool isBoomTime;
+
+    public GameObject[] followers;
+
+    public bool isRespawnTime;
+
+    public bool[] joyControl;
+    public bool isControl;
+    public bool isButtonA;
+    public bool isButtonB;
+
+
+
+    SpriteRenderer spriteRenderer;
     Animator anim;
+    
     
     void Awake()
     {
         anim = GetComponent<Animator>();
-      
-
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
+    void OnEnable()
+    {
+        Unbeatable();
+        Invoke("Unbeatable", 2); 
+    }
+
+    void Unbeatable()
+    {
+        isRespawnTime = !isRespawnTime;
+
+          if (isRespawnTime) // 무적 타임 이펙트 ( 투명 )
+        {
+            spriteRenderer.color = new Color(1, 1, 1, 0.5f);
+
+            for (int index = 0; index < followers.Length; index++)
+            {
+                followers[index].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
+            }
+        }
+
+        else // 무적 타임 종료
+        {
+            
+            spriteRenderer.color = new Color(1, 1, 1, 1);
+
+            for (int index = 0; index < followers.Length; index++)
+            {
+                followers[index].GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+            }
+
+        }
+    }
 
     void Update()
     {
@@ -51,16 +96,50 @@ public class Player : MonoBehaviour
         Boom();
     }
 
+    public void JoyPanel(int type)
+    {
+        for (int index=0; index<9; index++)
+        {
+            joyControl[index] = index == type;
+        }
+    }
+
+    public void JoyDown()
+    {
+        isControl = true;
+    }
+
+    public void JoyUp()
+    {
+        isControl = false;
+    }
+
     void Move()
     {
+        // Keyboard Control Value
         float h = Input.GetAxisRaw("Horizontal");
-
-        if ((isTouchRight && h == 1) || (isTouchLeft && h == -1))
-            h = 0;
-
         float v = Input.GetAxisRaw("Vertical");
 
-        if ((isTouchTop && v == 1) || (isTouchBottom && v == -1))
+        // Joy Control Value
+        if (joyControl[0]) { h = -1; v = 1; Handheld.Vibrate(200, 1);}
+
+        if (joyControl[1]) { h = 0; v = 1; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[2]) { h = 1; v = 1; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[3]) { h = -1; v = 0; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[4]) { h = 0; v = 0; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[5]) { h = 1; v = 0; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[6]) { h = -1; v = -1; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[7]) { h = 0; v = -1; Handheld.Vibrate(200, 1, false); }
+        if (joyControl[8]) { h = 1; v = -1; Handheld.Vibrate(200, 1, false); }
+
+
+
+        if ((isTouchRight && h == 1) || (isTouchLeft && h == -1) || !isControl)
+            h = 0;
+
+        
+
+        if ((isTouchTop && v == 1) || (isTouchBottom && v == -1) || !isControl)
             v = 0;
 
         Vector3 curPos = transform.position;
@@ -77,9 +156,30 @@ public class Player : MonoBehaviour
     }
 
 
+    public void ButtonADown()
+    {
+        isButtonA = true;
+        Handheld.Vibrate(200, 1, false);
+    }
+
+    public void ButtonAUp()
+    {
+        isButtonA = false;
+    }
+
+    public void ButtonBDown()
+    {
+        isButtonB = true;
+        Handheld.Vibrate(200, 1, false);
+    }
+
+
     void Fire()
     {
-        if (!Input.GetButton("Fire1"))
+        // if (!Input.GetButton("Fire1"))
+        //    return;
+
+        if (!isButtonA)
             return;
 
         if (curShotDelay < maxShotDelay)
@@ -115,25 +215,178 @@ public class Player : MonoBehaviour
 
             case 3:
 
-                GameObject bulletRR = objectManager.MakeObj("BulletPlayerA");
-                bulletRR.transform.position = transform.position + Vector3.right * 0.35f;
-               
-                GameObject bulletCC = objectManager.MakeObj("BulletPlayerB");
-                bulletCC.transform.position = transform.position;
-               
-                GameObject bulletLL = objectManager.MakeObj("BulletPlayerA");
-                bulletLL.transform.position = transform.position + Vector3.left * 0.35f;
+                GameObject bulletR3 = objectManager.MakeObj("BulletPlayerA");
+                bulletR3.transform.position = transform.position + Vector3.right * 0.3f;
 
-            
-                Rigidbody2D rigidRR = bulletRR.GetComponent<Rigidbody2D>();
-                Rigidbody2D rigidCC = bulletCC.GetComponent<Rigidbody2D>();
-                Rigidbody2D rigidLL = bulletLL.GetComponent<Rigidbody2D>();
+                GameObject bulletC3 = objectManager.MakeObj("BulletPlayerA");
+                bulletC3.transform.position = transform.position;
 
-                rigidRR.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
-                rigidCC.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
-                rigidLL.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                GameObject bulletL3 = objectManager.MakeObj("BulletPlayerA");
+                bulletL3.transform.position = transform.position + Vector3.left * 0.3f;
+
+
+                Rigidbody2D rigidR3 = bulletR3.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidC3 = bulletC3.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidL3 = bulletL3.GetComponent<Rigidbody2D>();
+
+                rigidR3.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidC3.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidL3.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
 
                 break;
+
+            case 4:
+
+                GameObject bulletRR4 = objectManager.MakeObj("BulletPlayerA");
+                bulletRR4.transform.position = transform.position + Vector3.right * 0.3f;
+                GameObject bulletR4 = objectManager.MakeObj("BulletPlayerA");
+                bulletR4.transform.position = transform.position + Vector3.right * 0.1f;
+
+
+
+                GameObject bulletLL4 = objectManager.MakeObj("BulletPlayerA");
+                bulletLL4.transform.position = transform.position + Vector3.left * 0.3f;
+                GameObject bulletL4 = objectManager.MakeObj("BulletPlayerA");
+                bulletL4.transform.position = transform.position + Vector3.left * 0.1f;
+
+
+                Rigidbody2D rigidRR4 = bulletRR4.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidR4 = bulletR4.GetComponent<Rigidbody2D>();
+
+
+                Rigidbody2D rigidLL4 = bulletLL4.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidL4 = bulletL4.GetComponent<Rigidbody2D>();
+
+
+                rigidRR4.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidR4.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+
+                rigidLL4.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidL4.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+
+
+                break;
+
+            case 5: 
+
+                GameObject bulletB = objectManager.MakeObj("BulletPlayerB");              
+                bulletB.transform.position = transform.position;
+
+                Rigidbody2D rigidB = bulletB.GetComponent<Rigidbody2D>();
+                rigidB.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+                break;
+
+            case 6:
+
+                GameObject bulletB6 = objectManager.MakeObj("BulletPlayerB");
+                GameObject bulletBR6 = objectManager.MakeObj("BulletPlayerA");
+
+                bulletB6.transform.position = transform.position;
+                bulletBR6.transform.position = transform.position + Vector3.right * 0.2f;
+
+                Rigidbody2D rigidB6 = bulletB6.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBR6 = bulletBR6.GetComponent<Rigidbody2D>();
+
+                rigidB6.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBR6.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+                break;
+
+            case 7:
+
+                GameObject bulletB7 = objectManager.MakeObj("BulletPlayerB");
+                GameObject bulletBR7 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBL7 = objectManager.MakeObj("BulletPlayerA");
+
+
+                bulletB7.transform.position = transform.position;
+                bulletBR7.transform.position = transform.position + Vector3.right * 0.2f;
+                bulletBL7.transform.position = transform.position + Vector3.left * 0.2f;
+
+
+                Rigidbody2D rigidB7 = bulletB7.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBR7 = bulletBR7.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBL7 = bulletBL7.GetComponent<Rigidbody2D>();
+
+
+                rigidB7.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBR7.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBL7.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+
+                break;
+
+            case 8:
+
+                GameObject bulletB8 = objectManager.MakeObj("BulletPlayerB");
+                GameObject bulletBR8 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBL8 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBRR8 = objectManager.MakeObj("BulletPlayerA");
+
+
+
+                bulletB8.transform.position = transform.position;
+                bulletBR8.transform.position = transform.position + Vector3.right * 0.2f;
+                bulletBL8.transform.position = transform.position + Vector3.left * 0.2f;
+                bulletBRR8.transform.position = transform.position + Vector3.right * 0.35f;
+
+
+
+                Rigidbody2D rigidB8 = bulletB8.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBR8 = bulletBR8.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBL8 = bulletBL8.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBRR8 = bulletBRR8.GetComponent<Rigidbody2D>();
+
+
+                rigidB8.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBR8.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBL8.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBRR8.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+
+                break;
+
+            default:
+
+                GameObject bulletB9 = objectManager.MakeObj("BulletPlayerB");
+                GameObject bulletBR9 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBL9 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBRR9 = objectManager.MakeObj("BulletPlayerA");
+                GameObject bulletBLL9 = objectManager.MakeObj("BulletPlayerA");
+
+
+
+                bulletB9.transform.position = transform.position;
+                bulletBR9.transform.position = transform.position + Vector3.right * 0.2f;
+                bulletBL9.transform.position = transform.position + Vector3.left * 0.2f;
+                bulletBRR9.transform.position = transform.position + Vector3.right * 0.35f;
+                bulletBLL9.transform.position = transform.position + Vector3.left * 0.35f;
+
+
+
+                Rigidbody2D rigidB9 = bulletB9.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBR9 = bulletBR9.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBL9 = bulletBL9.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBRR9 = bulletBRR9.GetComponent<Rigidbody2D>();
+                Rigidbody2D rigidBLL9 = bulletBLL9.GetComponent<Rigidbody2D>();
+
+
+                rigidB9.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBR9.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBL9.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBRR9.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+                rigidBLL9.AddForce(Vector2.up * 10, ForceMode2D.Impulse);
+
+                
+
+                break;
+
+
+           
+            
 
 
         }
@@ -149,7 +402,10 @@ public class Player : MonoBehaviour
 
     void Boom()
     {
-        if (!Input.GetButton("Fire2"))
+        // if (!Input.GetButton("Fire2"))
+        //    return;
+
+        if (!isButtonB)
             return;
 
         if (isBoomTime)
@@ -158,6 +414,7 @@ public class Player : MonoBehaviour
         if (boom == 0)
             return;
         boom--;
+        isButtonB = false;
         isBoomTime = true;
         gameManager.UpdateBoomIcon(boom);
 
@@ -249,13 +506,22 @@ public class Player : MonoBehaviour
 
         else if(collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "EnemyBullet")
         {
+
+
+
+            
+            if (isRespawnTime)
+                return;
+            
+
             if (isHit)
                 return;
 
             isHit = true;
             life--;
+            
             gameManager.UpdateLifeIcon(life);
-
+            gameManager.CallExplosion(transform.position, "P");
           
 
             if (life == 0)
@@ -286,7 +552,11 @@ public class Player : MonoBehaviour
                     if (power == maxPower)
                         score += 500;
                     else
+                    {
                         power++;
+                        AddFollower();
+                    }
+                        
                     
                     break;
 
@@ -308,6 +578,18 @@ public class Player : MonoBehaviour
 
         }
     }
+
+    void AddFollower()
+    {
+        if (power == 3)
+            followers[0].SetActive(true);
+        else if (power == 6)
+            followers[1].SetActive(true);
+        else if (power == 9)
+            followers[2].SetActive(true);
+
+    }
+
 
     void OffBoomEffect()
     {
