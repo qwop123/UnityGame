@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public Animator fadeAnim;
     public Transform playerPos;
 
+    
 
     public string[] enemyObjs;
     public Transform[] spawnPoints;
@@ -28,10 +29,30 @@ public class GameManager : MonoBehaviour
     public GameObject player;
 
     public Text scoreText;
+    public Text finalScoreText;
+
+
+
+
+
+    public Text[] scoreData;
+
+    //public static int Score = 0;
+
+
+   
+
+
+    //private int savedScore = 0;
+    //private string KeyString = "HighScore";
+
+
+
     public Image[] lifeImage;
     public Image[] boomImage;
 
     public GameObject gameOverSet;
+    
     public ObjectManager objectManager;
 
     public List<Spawn> spawnList;
@@ -42,10 +63,15 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        //savedScore = PlayerPrefs.GetInt(KeyString, 0);
+       // highscoreText.text = "High Score:" + savedScore.ToString("0");
+
         spawnList = new List<Spawn>();
         enemyObjs = new string[] { "EnemyS", "EnemyM", "EnemyL", "EnemyB" };
         StageStart();
     }
+
+    
 
     public void StageStart()
     {
@@ -135,7 +161,19 @@ public class GameManager : MonoBehaviour
         // UI Score Update
         Player playerLogic = player.GetComponent<Player>();
         scoreText.text = string.Format("{0:n0}", playerLogic.score);
+
+       // scoreText.text = "Score:" + Score.ToString("0");
+
+       // if (Score > savedScore)
+       // {
+        //    PlayerPrefs.SetInt(KeyString, Score);
+       // }
     }
+
+    //public void ScoreUp()
+    //{
+    //    Score++;
+    //}
 
 
     void SpawnEnemy()
@@ -256,13 +294,69 @@ public class GameManager : MonoBehaviour
         explosionLogic.StartExplosion(type);
     }
 
+
+    
+
+    
+
+    public void Save()
+    {
+        Player playerLogic = player.GetComponent<Player>();
+
+        if(playerLogic.score < PlayerPrefs.GetInt("BestScore"))
+        {
+            if (playerLogic.score < PlayerPrefs.GetInt("SecondScore"))
+            {
+                if (playerLogic.score < PlayerPrefs.GetInt("ThirdScore"))
+                    return;
+
+                PlayerPrefs.SetInt("ThirdScore", playerLogic.score);
+                return;
+            }
+            PlayerPrefs.SetInt("ThirdScore", PlayerPrefs.GetInt("SecondScore"));
+            PlayerPrefs.SetInt("SecondScore", playerLogic.score);
+            return;
+        }
+
+        if (playerLogic.score == PlayerPrefs.GetInt("BestScore"))
+            return;
+        PlayerPrefs.SetInt("ThirdScore", PlayerPrefs.GetInt("SecondScore"));
+        PlayerPrefs.SetInt("SecondScore", PlayerPrefs.GetInt("BestScore"));
+        PlayerPrefs.SetInt("BestScore", playerLogic.score);
+    }
+
     public void GameOver()
     {
+        Save();
+        Load();
+
+        scoreText.enabled = false;
+        Player playerLogic = player.GetComponent<Player>();
+        finalScoreText.text = "Score:" + playerLogic.score.ToString();
+
+        if (playerLogic.score == PlayerPrefs.GetInt("BestScore")) ;
+
+        
         gameOverSet.SetActive(true);
+
+
+    }
+
+    public void Load()
+    {
+       
+
+        scoreData[0].text = PlayerPrefs.GetInt("BestScore").ToString() + "점";
+        scoreData[1].text = PlayerPrefs.GetInt("SecondScore").ToString() + "점";
+        scoreData[2].text = PlayerPrefs.GetInt("ThirdScore").ToString() + "점";
+
     }
 
     public void GameRetry()
     {
         SceneManager.LoadScene(0);
     }
+
+   
+
 }

@@ -21,6 +21,7 @@ public class Player : MonoBehaviour
 
     public float maxShotDelay;
     public float curShotDelay;
+    
 
 
     public GameObject bulletObjA;
@@ -98,7 +99,7 @@ public class Player : MonoBehaviour
 
     public void JoyPanel(int type)
     {
-        for (int index=0; index<9; index++)
+        for (int index = 0; index < 9; index++)
         {
             joyControl[index] = index == type;
         }
@@ -120,17 +121,16 @@ public class Player : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        // Joy Control Value
-        if (joyControl[0]) { h = -1; v = 1; Handheld.Vibrate(200, 1);}
-
-        if (joyControl[1]) { h = 0; v = 1; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[2]) { h = 1; v = 1; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[3]) { h = -1; v = 0; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[4]) { h = 0; v = 0; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[5]) { h = 1; v = 0; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[6]) { h = -1; v = -1; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[7]) { h = 0; v = -1; Handheld.Vibrate(200, 1, false); }
-        if (joyControl[8]) { h = 1; v = -1; Handheld.Vibrate(200, 1, false); }
+        //Joy Control Value
+        if (joyControl[0]) { h = -1; v = 1; }
+        if (joyControl[1]) { h = 0; v = 1; }
+        if (joyControl[2]) { h = 1; v = 1; }
+        if (joyControl[3]) { h = -1; v = 0; }
+        if (joyControl[4]) { h = 0; v = 0; }
+        if (joyControl[5]) { h = 1; v = 0; }
+        if (joyControl[6]) { h = -1; v = -1; }
+        if (joyControl[7]) { h = 0; v = -1; }
+        if (joyControl[8]) { h = 1; v = -1; }
 
 
 
@@ -159,7 +159,7 @@ public class Player : MonoBehaviour
     public void ButtonADown()
     {
         isButtonA = true;
-        Handheld.Vibrate(200, 1, false);
+
     }
 
     public void ButtonAUp()
@@ -170,14 +170,14 @@ public class Player : MonoBehaviour
     public void ButtonBDown()
     {
         isButtonB = true;
-        Handheld.Vibrate(200, 1, false);
+
     }
 
 
     void Fire()
     {
-        // if (!Input.GetButton("Fire1"))
-        //    return;
+         if (!Input.GetButton("Fire1"))
+            return;
 
         if (!isButtonA)
             return;
@@ -546,6 +546,8 @@ public class Player : MonoBehaviour
             {
                 case "Coin":
                     score += 1000;
+                    
+
                     break;
 
                 case "Power":
